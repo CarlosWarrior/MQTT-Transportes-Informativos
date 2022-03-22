@@ -1,0 +1,26 @@
+{
+  "name": "transportes-informativos",
+  "version": "1.0.0",
+  "description": "broker MQTT",
+  "main": "Rutas.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CarlosWarrior/MQTT-Broker-Transportes-Informativos.git"
+  },
+  "author": "Carlos Alejandro Guerrero Martínez",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/CarlosWarrior/MQTT-Broker-Transportes-Informativos/issues"
+  },
+  "homepage": "https://github.com/CarlosWarrior/MQTT-Broker-Transportes-Informativos#readme",
+  "dependencies": {
+    "aedes": "^0.46.3",
+    "cors": "^2.8.5",
+    "express": "^4.17.3",
+    "helmet": "^5.0.2",
+    "mqtt": "^4.3.7"
+  }
+}
