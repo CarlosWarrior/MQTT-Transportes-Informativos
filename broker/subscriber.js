@@ -23,8 +23,6 @@ const options = {
   }
 };
 
-const subscriptions = {'': 1};
-
 const mqttclient = mqtt.connect(host, options);
 
 const logSubscription = (err, data) => {

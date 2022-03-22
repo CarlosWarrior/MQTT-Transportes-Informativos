@@ -13,19 +13,6 @@ const mq = require('mqemitter-redis')({
   db: config.redis_db,
   family: 4  
 });
-/*
-
-const persistence = require('aedes-persistence-redis')({
-  port: config.redis_port,
-  host: config.redis_host,
-  family: 4,
-  db: config.redis_db,
-  maxSessionDelivery: 6000
-});
-
-let aedesOptions = {mq, persistence, concurrency: 200};
-*/
-
 
 let aedes = require('aedes')()//(aedesOptions);
 let server = require('net').createServer(aedes.handle);
@@ -34,7 +21,15 @@ server.listen(config.mqtt_port, function () {
   console.log('MQTT server listening on port', config.mqtt_port);
 });
 
+/*
+let ws = require('websocket-stream');
+ws.createServer({ server }, aedes.handle).listen(config.ws_port, function () {
+  console.log('WS server listening on port', config.ws_port);
+});
+*/
 
+
+//aedes mqtt implementation
 aedes.on('client', function (client) {
   console.log('new client', client.id);
 });
@@ -50,7 +45,7 @@ aedes.on('subscribe', function (subscriptions, client) {
 });
 
 aedes.on('clientError', function (client, err) {
-  console.log('client error', client.clientId, err.message, err.stack);
+  console.log('client error', client.id, err.message, err.stack);
 });
 
 aedes.on('connectionError', function (client, err) {
