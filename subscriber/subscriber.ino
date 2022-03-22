@@ -1,91 +1,88 @@
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <PubSubClient.h>//https://pubsub.knolleary.net/api
-#include "ThingSpeak.h"
-#include "DHT.h"
-#define pi 3.14159265358979323846
 //#include <WiFiServer.h>
+/******Keys*******/
+const char* WIFISSID = "Totalplay-149E";//"CharlieGDrummer";//"IoT";
+const char* PASSWORD = "149E37A6ZuSf63st";//"policeerr";//"1t3s0IoT18";
 
-const char* deviceTopic = "device";
-const char* mqtt_client "client";
-const char* token = "token";
-const char* mqtt_server = "localhost:3000/";
+const char* mqtt_client = "ESP32";
+const char* deviceTopic = "TOPIC_MQTT";
+const char* mqtt_server ="0.tcp.ngrok.io";
+#define mqtt_port 19990
+//#define mqtt_port 2883
+#define led_pin 12
 
-const char* WIFISSID = "CharlieGDrummer";//"IoT";
-const char* PASSWORD = "policeerr";//"1t3s0IoT18";
+/******Keys*******/
 
 
-class Subscriber{
-  private:
-    PubSubClient* subscriber;
-  public:
-    void subscribe(){
-      subscriber->subscribe(deviceTopic);
-    };
-    void receive(char* t, byte* message, unsigned int length) {
-      if(String(t) == deviceTopic){
-        Serial.println(deviceTopic);
-        String _message;
-        for (int i = 0; i < length; i++) {
-          _message += (char)message[i];
-        }
-        Serial.println(_message);
-      }
-      else Serial.printf("other topic: %s\n", deviceTopic);
-    };
-    bool reconnect(){
-      while (!subscriber->connected()) {
-        Serial.println("Attempting MQTT connection...");
-        // Attemp to connect
-        if (subscriber->connect(mqtt_client, token, "")) {
-         Serial.println("Connected");
-        } 
-        else {
-          Serial.print("Failed, rc=");
-          Serial.print(subscriber->state());
-          Serial.println(" try again in 2 seconds");
-          // Wait 2 seconds before retrying
-          delay(2000);
-        }
-      }
-    };
-    Subscriber(PubSubClient sbc){
-      subscriber = &sbc;
-      subscriber->setServer(mqtt_server, 1883);
-      subscriber->setCallback(receive);
-    };
-}
-
-void connect() {
-  Serial.begin(115200);
-  WiFi.begin(WIFISSID, PASSWORD);
-
-  Serial.println();
-  Serial.print("Wait for WiFi...");
-
-  while (WiFi.status() != WL_CONNECTED) {
-    Serial.print(".");
-    delay(500);
+  void callback(char* topic, byte* payload, unsigned int length) {
+    Serial.println("callback");
+      char p[length + 1];
+      memcpy(p, payload, length);
+      p[length] = NULL;
+      String message(p);
+      Serial.write(payload, length);
+      Serial.println(topic);
   }
 
-  Serial.println("");
-  Serial.println("WiFi Connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
-}
-
-
-
-WiFiClient node;
-PubSubClient subscriber(node);//subscriber
-Subscriber device;
-void setUp(){
-  connect();
-  device = new Subscriber(subscriber);
-}
-
-void loop() {
-  if(device.reconnect()){
-    device.subscribe();
+  const char* willTopic = "WilllMsg";
+  const char* willPayload = "ESP32 Connection Closed abnormally..!";
+  WiFiClient wificlient;
+  PubSubClient subscriber(wificlient);
+  void reconnect() {
+     while (!subscriber.connected()) {
+       Serial.println("Attempting MQTT connection...");
+       Serial.println(mqtt_client);
+       // Attemp to connect
+       if (subscriber.connect(mqtt_client, "username", "password", willTopic, 1, true, willPayload)) {
+        Serial.print("Connected to server: ");
+        Serial.println(mqtt_client);
+        Serial.print("///////////////////////////");
+       } 
+       else {
+         Serial.print("Failed, rc=");
+         Serial.print(subscriber.state());
+         Serial.println(" try again in 2 seconds");
+         // Wait 2 seconds before retrying
+         delay(2000);
+       }
+     }
+     Serial.println("Subscribing to topic");
+     Serial.println(deviceTopic);
+     subscriber.unsubscribe(deviceTopic);
+     subscriber.subscribe(deviceTopic, 1);
   }
-}
+
+  void loop() {
+    Serial.println("Loop");
+    if (!subscriber.connected()) {
+      Serial.println("out");
+      reconnect();
+      delay(1000);
+    }
+    else delay(500);
+    Serial.println("in");
+
+  }
+  void setup() { //needs: WIFISSID, PASSWORD
+    Serial.begin(115200);
+    WiFi.begin(WIFISSID, PASSWORD);
+
+    Serial.println();
+    Serial.print("Wait for WiFi...");
+
+    while (WiFi.status() != WL_CONNECTED) {
+      Serial.print(".");
+      delay(500);
+    }
+
+    Serial.println("");
+    Serial.println("WiFi Connected");
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
+    subscriber.setServer(mqtt_server, mqtt_port);
+    subscriber.setCallback(callback);
+    pinMode(led_pin, OUTPUT);
+    digitalWrite(led_pin, HIGH);
+  }
