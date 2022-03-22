@@ -2,8 +2,8 @@ const http = require('http')
 const createError = require('http-errors')
 const express = require('express')
 require('./broker')
-//www access
-const port = 3003
+
+const port = 3000
 const app = express()
 app.set('port', port)
 const routes = express.Router()

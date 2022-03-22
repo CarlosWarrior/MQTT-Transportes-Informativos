@@ -8,9 +8,13 @@ const char* PASSWORD = "149E37A6ZuSf63st";//"policeerr";//"1t3s0IoT18";
 
 const char* mqtt_client = "ESP32";
 const char* deviceTopic = "TOPIC_MQTT";
-const char* mqtt_server ="0.tcp.ngrok.io";
-#define mqtt_port 19990
-//#define mqtt_port 2883
+
+//const char* mqtt_server ="0.tcp.ngrok.io";
+//#define mqtt_port 19990
+
+const char* mqtt_server = 'ec2-3-15-19-31.us-east-2.compute.amazonaws.com';
+#define mqtt_port 2883
+
 #define led_pin 12
 
 /******Keys*******/
