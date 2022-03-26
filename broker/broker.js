@@ -15,7 +15,63 @@ const mq = require('mqemitter-redis')({
   family: 4  
 });
 
-let aedes = require('aedes')()//(aedesOptions);
+
+const options = {
+  concurrency: 100,
+  heartbeatInterval: 120000, // 2 minutes
+  connectTimeout: 60000, // 1 minute
+  decodeProtocol: null,
+  preConnect: defaultPreConnect,
+  authenticate: defaultAuthenticate,
+  authorizeSubscribe: defaultAuthorizeSubscribe,
+  authorizePublish: defaultAuthorizePublish,
+  authorizeForward: defaultAuthorizeForward,
+  published: defaultPublished,
+  trustProxy: false,
+  trustedProxies: [],
+  queueLimit: 42,
+  maxClientsIdLength: 23
+}
+
+function defaultPreConnect (client, packet, callback) {
+  console.log("--------------------------------")
+  console.log("pre-connect", client.id, {cmd:packet.cmd, id:packet.brokerId?packet.brokerId:packet.id, topic:packet.topic})
+  callback(null, true)
+}
+
+function defaultAuthenticate (client, username, password, callback) {
+  console.log("Client authorized", client.id, username, password)
+  callback(null, true)
+}
+
+function defaultAuthorizeSubscribe (client, sub, callback) {
+  console.log("Subscription authorized", client.id, sub)
+  callback(null, sub)
+}
+
+function defaultAuthorizePublish (client, packet, callback) {
+  if (packet.topic.startsWith('$SYS/')) {
+    return callback(new Error('$SYS/' + ' topic is reserved'))
+  }
+  console.log("--------------------------------")
+  console.log("Publicaction authorized", client.id, {cmd:packet.cmd, brokerId:packet.brokerId?packet.brokerId:packet.id, topic:packet.topic})
+  callback(null)
+}
+
+function defaultAuthorizeForward (client, packet) {
+  console.log("Client packet authorized", client.id, {cmd:packet.cmd, brokerId:packet.brokerId?packet.brokerId:packet.id, topic:packet.topic})
+  return packet
+}
+
+function defaultPublished (packet, client, callback) {
+  console.log("Client diversification", packet)
+  callback(null)
+  console.log("--------------------------------")
+}
+
+
+
+let aedes = require('aedes')(options);
 let server = require('net').createServer(aedes.handle);
 
 server.listen(config.mqtt_port, function () {
